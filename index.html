@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLPT Login Portal</title>
+    <link rel="icon" type="image/png" href="./LOGO/DLPT-LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'cashier-primary': '#10b981', // Emerald green
+                        'cashier-hover': '#059669',
+                        'cashier-ring': '#34d399',
+                    }
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+            /* Ensure full screen height for centering */
+            min-height: 100vh;
+        }
+
+        .auth-container {
+            /* Centering wrapper */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .role-button {
+            transition: all 0.3s ease;
+        }
+
+        .role-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Message Box Utility -->
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[250px] text-sm border"
+        role="alert"></div>
+
+    <div class="auth-container p-4">
+        <div class="bg-white p-8 md:p-10 rounded-xl shadow-2xl w-full max-w-md">
+
+            <!-- Logo + Title -->
+            <div class="flex flex-col items-center mb-6">
+                <img src="./LOGO/DLPT-LOGO.png" alt="DLPT Logo"
+                    class="h-20 w-20 rounded-full shadow-md mb-3 border-4 border-black-700">
+                <h1 class="text-3xl font-extrabold text-gray-800 text-center">DLPT Access</h1>
+            </div>
+
+
+            <!-- -------------------------------------------------------------------------------- -->
+            <!-- 1. ROLE SELECTION VIEW -->
+            <!-- -------------------------------------------------------------------------------- -->
+            <div id="role-selection-view">
+                <p class="text-center text-gray-600 mb-8">Please select your role to proceed to login.</p>
+
+                <div class="space-y-4">
+                    <!-- Officer Button -->
+                    <button type="button" data-role="Officer" id="selectOfficer"
+                        class="role-button flex items-center justify-center w-full py-4 px-6 bg-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                        I am an Officer
+                    </button>
+
+                    <!-- Cashier Button (New Role) -->
+                    <button type="button" data-role="Cashier" id="selectCashier"
+                        class="role-button flex items-center justify-center w-full py-4 px-6 bg-cashier-primary text-white font-semibold rounded-xl shadow-lg hover:bg-cashier-hover focus:outline-none focus:ring-4 focus:ring-cashier-ring">
+                        I am a Cashier
+                    </button>
+
+                    <!-- Driver Button -->
+                    <button type="button" data-role="Driver" id="selectDriver"
+                        class="role-button flex items-center justify-center w-full py-4 px-6 bg-gray-200 text-gray-700 font-semibold rounded-xl shadow-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300">
+                        I am a Driver
+                    </button>
+                </div>
+            </div>
+
+            <!-- -------------------------------------------------------------------------------- -->
+            <!-- 2. LOGIN FORM VIEW -->
+            <!-- -------------------------------------------------------------------------------- -->
+            <form id="login-form-view" class="hidden" onsubmit="handleLogin(event)">
+                <h2 class="text-xl md:text-2xl font-semibold text-gray-700 mb-2" id="loginHeader">Log in as...</h2>
+                <p class="text-sm text-gray-500 mb-6">Enter your credentials to access the system.</p>
+
+                <!-- NOTE FOR TESTING -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6 shadow-inner">
+                    <p class="text-sm font-medium text-yellow-800">
+                        <span class="font-bold">TEST CREDENTIALS (Works for all roles):</span>
+                        <br>
+                        Email: <code class="font-mono text-yellow-700">123@email.com</code>
+                        <br>
+                        Password: <code class="font-mono text-yellow-700">123</code>
+                    </p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="email" name="email" required value="123@email.com"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                            placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="password" name="password" required value="123"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm"
+                            placeholder="••••••••">
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3 mt-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-xl hover:bg-indigo-700 transition duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-300">
+                        Login
+                    </button>
+                    <button type="button" onclick="resetApp()"
+                        class="w-full py-3 text-sm text-indigo-600 font-semibold hover:text-indigo-800 transition duration-200">
+                        &larr; Back to Role Selection
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+
+
+    <script>
+        // --- State Variables ---
+        let currentRole = null;
+
+        // --- Utility: Display simple message/alert ---
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden");
+            messageBox.classList.remove("bg-red-100", "text-red-800", "bg-green-100", "text-green-800", "border-red-400", "border-green-400");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-400", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-400", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 5000);
+        }
+
+        // --- View Management ---
+        function showView(viewId) {
+            // Hide all views first
+            document.getElementById('role-selection-view').classList.add('hidden');
+            document.getElementById('login-form-view').classList.add('hidden');
+
+            const view = document.getElementById(viewId);
+            if (view) {
+                view.classList.remove('hidden');
+            }
+        }
+
+        // --- Role Selection Logic ---
+        function handleRoleSelection(event) {
+            const role = event.currentTarget.dataset.role;
+            if (role) {
+                currentRole = role;
+                sessionStorage.setItem('authenticatedRole', currentRole);
+                document.getElementById('loginHeader').textContent = `Log in as ${currentRole}`;
+                showView('login-form-view');
+                displayMessage(`Selected role: ${currentRole}. Please log in.`);
+            }
+        }
+
+        // --- Login Logic with Redirection ---
+        function handleLogin(event) {
+            event.preventDefault();
+
+            const emailInput = document.getElementById('email').value;
+            const passwordInput = document.getElementById('password').value;
+
+            // Define the single set of valid credentials
+            const validEmail = '123@email.com';
+            const validPassword = '123';
+
+            if (emailInput === validEmail && passwordInput === validPassword) {
+                // Successful Login
+                sessionStorage.setItem('isLoggedIn', 'true');
+
+                displayMessage(`Login successful as ${currentRole}! Redirecting...`, false);
+
+                // *** UPDATED REDIRECTION LOGIC ***
+                if (currentRole === 'Officer') {
+                    // Redirect Officer to homeOfficer.html
+                    window.location.href = './officerDashboard/homeOfficer.html';
+                } else if (currentRole === 'Cashier') {
+                    // Redirect Cashier to pay_fine.html
+                    window.location.href = './casheirDashboard/homeCashier.html';
+                } else if (currentRole === 'Driver') {
+                    // Redirect Driver to homeDriver.html
+                    window.location.href = './driverDashboard/homeDriver.html';
+                }
+
+                // Note: The browser will redirect, so no further code here is executed.
+            } else {
+                // Failed Login
+                displayMessage('Invalid credentials. Please use the testing email and password (123@email.com / 123).', true);
+            }
+        }
+
+        // --- Reset/Back to Role Selection Logic ---
+        function resetApp() {
+            sessionStorage.removeItem('authenticatedRole');
+            sessionStorage.removeItem('isLoggedIn');
+            currentRole = null;
+            showView('role-selection-view');
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            // Attach event listeners for role selection
+            document.getElementById('selectOfficer').addEventListener('click', handleRoleSelection);
+            document.getElementById('selectDriver').addEventListener('click', handleRoleSelection);
+            document.getElementById('selectCashier').addEventListener('click', handleRoleSelection); // NEW LISTENER
+
+            // Check if user has a saved role, if so, skip to login form
+            const savedRole = sessionStorage.getItem('authenticatedRole');
+
+            if (savedRole) {
+                currentRole = savedRole;
+                document.getElementById('loginHeader').textContent = `Log in as ${currentRole}`;
+                showView('login-form-view');
+            } else {
+                // Start with role selection
+                showView('role-selection-view');
+            }
+        };
+
+    </script>
+</body>
+
+</html>

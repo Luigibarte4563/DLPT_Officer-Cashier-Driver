@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLPT Driver Dashboard - My Violations</title>
+    <link rel="icon" type="image/png" href=".././LOGO/DLPT-LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        /* Custom style for the active navigation link - Driver page is active here */
+        .nav-link.active {
+            /* Desktop Styles */
+            @apply md:bg-indigo-50 md:text-indigo-700 md:border-l-4 md:border-indigo-600 md:font-semibold;
+            /* Mobile Styles */
+            @apply text-indigo-700 font-bold bg-indigo-100;
+        }
+
+        /* Style for the history table to be responsive */
+        .history-table-container {
+            overflow-x: auto;
+        }
+
+        /* Ensure main content is scrollable and pushes footer content down */
+        .main-content-area {
+            padding-bottom: 5rem;
+        }
+
+        /* Ensure the mobile nav is truly sticky */
+        .mobile-sticky-nav {
+            position: sticky;
+            bottom: 0;
+        }
+
+        /* Hide the long link text on mobile */
+        .nav-text {
+            @apply hidden md:inline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- Message Box for notifications (alerts removed) -->
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[250px] text-sm border"
+        role="alert"></div>
+
+    <header class="flex justify-between items-center bg-white p-4 md:px-8 rounded-b-xl shadow-md flex-shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <img src=".././LOGO/DLPT-LOGO.png" alt="DLPT Logo"
+                class="h-12 w-12 rounded-full shadow-md border-4 border-black-700">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">DLPT Driver Portal</h1>
+        </div>
+        <div class="flex items-center space-x-2 md:space-x-4">
+            <div id="profile" class="hidden items-center bg-indigo-50 p-1 md:p-2 rounded-full shadow-inner">
+                <span id="driverRole"
+                    class="hidden md:inline text-xs md:text-sm font-medium text-indigo-700 mr-3">Driver</span>
+                <span id="walletShort"
+                    class="text-indigo-900 font-mono text-xs bg-indigo-200 py-1 px-3 rounded-full"></span>
+                <button id="disconnectWalletBtn"
+                    class="ml-3 p-1 rounded-full text-indigo-600 hover:bg-indigo-300 transition"
+                    title="Disconnect Wallet">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+            <button id="connectWalletBtn"
+                class="bg-indigo-600 text-white font-semibold text-sm md:text-base py-2 px-3 md:px-4 rounded-full shadow-lg hover:bg-indigo-700 transition duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 flex-col md:flex-row">
+
+        <nav
+            class="w-full md:w-64 bg-white shadow-xl flex-shrink-0 border-t md:border-r md:border-t-0 order-last md:order-none mobile-sticky-nav z-10">
+            <ul class="flex justify-around md:block space-y-0 md:space-y-2 p-1 md:p-2">
+                <li>
+                    <a href="homeDriver.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="driver.html"
+                        class="nav-link active flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">My Violations</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="ledger.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">The Ledger</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto main-content-area">
+
+            <section id="driver-violations-view" class="space-y-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-red-600 border-b pb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.372 17c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Pending Violations (Unpaid)
+                    </h2>
+                    <!-- Note to the user: Payments must be handled off-dashboard as per your requirement. -->
+                    <p class="text-sm text-gray-500 mb-4">These fines are pending. Payments must be handled off-dashboard.</p>
+                    <div class="history-table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-red-50">
+                                <tr>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        License</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Type</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Amount (PHP)</th>
+                                    <!-- NEW COLUMN ADDED HERE -->
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Location / Pay Info</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date</th>
+                                    <!-- ACTION COLUMN REMOVED -->
+                                </tr>
+                            </thead>
+                            <tbody id="unpaidViolationsTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <!-- Colspan updated from 4 to 5 -->
+                                    <td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view pending
+                                        fines.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-green-600 border-b pb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Payment History (Paid)
+                    </h2>
+                    <p class="text-sm text-gray-500 mb-4">Your record of successfully paid violations.</p>
+                    <div class="history-table-container">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-green-50">
+                                <tr>
+                                    <!-- Changed from ID to License -->
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        License</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Type</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Amount (PHP)</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date Paid</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Officer</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paidViolationsTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view payment
+                                        history.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+        </main>
+    </div>
+
+    <!-- The wallet connect modal was removed as it was only used by the removed payment function -->
+
+    <script type="module">
+        // ----------------- CONFIG (Keep this consistent across all files) -----------------
+        const RPC_URL = "https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763"; // Sepolia RPC
+        // The Sepolia Chain ID is 11155111n (BigInt)
+        const SEPOLIA_CHAIN_ID = 11155111n;
+        const CONTRACT_ADDRESS = "0x12E17c73FF8219Ccd3265a4b66d83221e9991093"; // Your deployed Sepolia contract
+        const ABI = [
+            "function issueViolation(string _violationId, address _violator, string _license, string _violationType, uint256 _amount, string _location, uint256 _timestamp)",
+            "function markAsPaid(string _violationId) payable",
+            "function getAllViolations() view returns (tuple(string violationId, address officer, address violator, string license, string violationType, uint256 amount, string location, uint256 timestamp, string status)[])",
+        ];
+        // ---------------------------------------------------------------------------------
+
+        // --- UI Elements ---
+        const connectWalletBtn = document.getElementById("connectWalletBtn");
+        const disconnectWalletBtn = document.getElementById("disconnectWalletBtn");
+        // const walletConnectModal = document.getElementById("wallet-connect-modal"); // Removed
+        const profile = document.getElementById("profile");
+        const walletShort = document.getElementById("walletShort");
+        const driverRole = document.getElementById("driverRole");
+        const unpaidViolationsTableBody = document.getElementById("unpaidViolationsTableBody");
+        const paidViolationsTableBody = document.getElementById("paidViolationsTableBody");
+
+        let driverWallet = null;
+        let provider, signer, contract;
+        let readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        let readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+        // --- Utility ---
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden");
+            messageBox.classList.remove("bg-red-100", "text-red-800", "bg-green-100", "text-green-800", "border-red-400", "border-green-400");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-400", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-400", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 5000);
+        }
+
+        function formatAddress(address) {
+            return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'N/A';
+        }
+
+        function formatTimestamp(timestamp) {
+            try {
+                const date = new Date(Number(timestamp) * 1000);
+                return date.toLocaleString();
+            } catch (e) {
+                return 'Invalid Date';
+            }
+        }
+
+        // Removed the resetPayButton utility as it is no longer used.
+
+        // --- Core Functions ---
+
+        async function loadViolations() {
+            if (!driverWallet) {
+                // Colspan updated from 4 to 5
+                unpaidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view pending fines.</td></tr>`;
+                paidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view payment history.</td></tr>`;
+                return;
+            }
+
+            // Colspan updated from 4 to 5
+            unpaidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-indigo-500">Loading violations...</td></tr>`;
+            paidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-indigo-500">Loading violations...</td></tr>`;
+
+            try {
+                if (!readContract) {
+                    readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+                }
+                const allViolations = await readContract.getAllViolations();
+
+                // Filter for violations addressed to the currently connected driver's wallet
+                const myViolations = [...allViolations]
+                    .filter(v => v.violator.toLowerCase() === driverWallet.toLowerCase())
+                    .reverse(); // Show newest first
+
+                const unpaid = myViolations.filter(v => v.status !== "Paid");
+                const paid = myViolations.filter(v => v.status === "Paid");
+
+                // Render Unpaid Violations
+                if (unpaid.length === 0) {
+                    // Colspan updated from 4 to 5
+                    unpaidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">🎉 No pending violations! You're all clear.</td></tr>`;
+                } else {
+                    unpaidViolationsTableBody.innerHTML = unpaid.map(v => {
+                        const amountEth = Number(ethers.formatEther(v.amount)).toFixed(2);
+                        return `
+                            <tr class="hover:bg-red-50" data-violation-id="${v.violationId}" data-amount-wei="${v.amount}">
+                                <!-- Display the License Number -->
+                                <td class="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${v.license}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500">${v.violationType}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-900 font-bold">₱${amountEth}</td>
+                                
+                                <!-- NEW COLUMN: Location / Pay Info, matching the user's request format -->
+                                <td class="px-2 py-2 whitespace-nowrap text-xs text-red-600 font-semibold">
+                                    <span class="block font-bold">Pay Fine:</span>
+                                    <span class="block text-gray-600">Caught in: ${v.location}</span>
+                                </td>
+
+                                <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500">${formatTimestamp(v.timestamp)}</td>
+                                <!-- ACTION COLUMN (BUTTON) REMOVED -->
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Render Paid Violations (no changes here as only the unpaid table was requested to be modified)
+                if (paid.length === 0) {
+                    paidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">No payment history found.</td></tr>`;
+                } else {
+                    paidViolationsTableBody.innerHTML = paid.map(v => {
+                        const amountEth = Number(ethers.formatEther(v.amount)).toFixed(2);
+                        return `
+                            <tr class="hover:bg-green-50">
+                                <!-- Display the License Number -->
+                                <td class="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${v.license}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500">${v.violationType}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-900">${amountEth}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500">${formatTimestamp(v.timestamp)}</td>
+                                <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500" title="${v.officer}">${formatAddress(v.officer)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+            } catch (error) {
+                console.error("Error loading driver violations:", error);
+                // Colspan updated from 4 to 5
+                unpaidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">Failed to load violations.</td></tr>`;
+                paidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-red-500">Failed to load history.</td></tr>`;
+            }
+        }
+
+        // The window.payViolation function and its logic were removed, as the button that calls it is gone.
+
+        // --- Wallet Connection Logic ---
+        async function connectContract() {
+            if (!window.ethereum) {
+                displayMessage("Please install MetaMask!", true);
+                return;
+            }
+
+            try {
+                // walletConnectModal.classList.remove("hidden"); // Removed modal logic
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                if (!accounts || accounts.length === 0) {
+                    throw { code: 4001, message: "No wallet accounts found!" };
+                }
+
+                driverWallet = accounts[0];
+                sessionStorage.setItem("walletAddress", driverWallet);
+
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                updateUIForConnectedState(driverWallet);
+                displayMessage("Wallet connected!");
+                await loadViolations(); // Load data after connecting
+            } catch (err) {
+                console.error(err);
+                displayMessage(err.code === 4001 ? "Connection rejected by user." : "Wallet connection failed. See console for details.", true);
+                updateUIForDisconnectedState();
+            } finally {
+                // walletConnectModal.classList.add("hidden"); // Removed modal logic
+            }
+        }
+
+        // --- Wallet UI ---
+        function updateUIForConnectedState(address) {
+            driverWallet = address;
+            walletShort.textContent = formatAddress(address);
+            profile.classList.remove("hidden");
+            profile.classList.add("flex");
+            driverRole.classList.remove("hidden");
+            connectWalletBtn.classList.add("hidden");
+        }
+
+        function updateUIForDisconnectedState() {
+            driverWallet = null;
+            sessionStorage.removeItem("walletAddress");
+            profile.classList.add("hidden");
+            profile.classList.remove("flex");
+            connectWalletBtn.classList.remove("hidden");
+            // Clear tables, colspan updated to 5 for unpaid table
+            unpaidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view pending fines.</td></tr>`;
+            paidViolationsTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-500">Connect wallet to view payment history.</td></tr>`;
+        }
+
+        function disconnectWallet() {
+            updateUIForDisconnectedState();
+            displayMessage("Wallet disconnected.");
+        }
+
+        // --- Event Listeners and Init ---
+        connectWalletBtn.addEventListener("click", connectContract);
+        disconnectWalletBtn.addEventListener("click", disconnectWallet);
+
+        window.onload = () => {
+            const savedWallet = sessionStorage.getItem("walletAddress");
+            if (savedWallet) {
+                // If a wallet was saved, we attempt to re-establish connection
+                // This means calling connectContract() to get the provider/signer/contract objects back
+                connectContract(); 
+            }
+        };
+    </script>
+</body>
+
+</html>

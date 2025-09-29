@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLPT Officer Dashboard - Issue Ticket</title>
+    <link rel="icon" type="image/png" href=".././LOGO/DLPT-LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        /* Custom style for the active navigation link - Officer page is active here */
+        .nav-link.active {
+            /* Desktop Styles */
+            @apply md:bg-indigo-50 md:text-indigo-700 md:border-l-4 md:border-indigo-600 md:font-semibold;
+            /* Mobile Styles */
+            @apply text-indigo-700 font-bold bg-indigo-100;
+        }
+
+        /* Style for the history table to be responsive */
+        #recentHistoryTableContainer {
+            overflow-x: auto;
+        }
+
+        /* Ensure main content is scrollable and pushes footer content down */
+        .main-content-area {
+            /* On mobile, add padding equivalent to the height of the bottom nav (approx 16-20 Tailwind units) */
+            padding-bottom: 5rem;
+            /* ~p-20 */
+        }
+
+        /* Ensure the mobile nav is truly sticky */
+        .mobile-sticky-nav {
+            position: sticky;
+            bottom: 0;
+        }
+
+        /* Hide the long link text on mobile */
+        .nav-text {
+            @apply hidden md:inline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[250px] text-sm border"
+        role="alert"></div>
+
+    <header class="flex justify-between items-center bg-white p-4 md:px-8 rounded-b-xl shadow-md flex-shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <img src=".././LOGO/DLPT-LOGO.png" alt="DLPT Logo"
+                class="h-12 w-12 rounded-full shadow-md border-4 border-black-700">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">DLPT Officer Portal</h1>
+        </div>
+        <div class="flex items-center space-x-2 md:space-x-4">
+            <div id="profile" class="hidden items-center bg-indigo-50 p-1 md:p-2 rounded-full shadow-inner">
+                <span id="officerRole"
+                    class="hidden md:inline text-xs md:text-sm font-medium text-indigo-700 mr-3">Traffic Officer</span>
+                <span id="walletShort"
+                    class="text-indigo-900 font-mono text-xs bg-indigo-200 py-1 px-3 rounded-full"></span>
+                <button id="disconnectWalletBtn"
+                    class="ml-3 p-1 rounded-full text-indigo-600 hover:bg-indigo-300 transition"
+                    title="Disconnect Wallet">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+            <button id="connectWalletBtn"
+                class="bg-indigo-600 text-white font-semibold text-sm md:text-base py-2 px-3 md:px-4 rounded-full shadow-lg hover:bg-indigo-700 transition duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 flex-col md:flex-row">
+
+        <!-- FIXED NAVIGATION BAR ARRANGEMENT -->
+        <nav
+            class="w-full md:w-64 bg-white shadow-xl flex-shrink-0 border-t md:border-r md:border-t-0 order-last md:order-none mobile-sticky-nav z-10">
+            <ul class="flex justify-around md:block space-y-0 md:space-y-2 p-1 md:p-2">
+                <!-- 1. Home -->
+                <li>
+                    <a href="homeOfficer.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">Home</span>
+                    </a>
+                </li>
+                <!-- 2. Officer (Issue) - Active Page -->
+                <li>
+                    <a href="officer.html"
+                        class="nav-link active flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">Officer (Issue)</span>
+                    </a>
+                </li>
+                <!-- 4. Search -->
+                <li>
+                    <a href="search.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">Search</span>
+                    </a>
+                </li>
+                <!-- 5. Ledger -->
+                <li>
+                    <a href="ledger.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 md:p-3 text-xs md:text-sm text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span class="text-[10px] md:text-sm mt-1 md:mt-0 nav-text">The Ledger</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- END OF NAVIGATION BAR EDITS -->
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto main-content-area">
+
+            <section id="officer-view" class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div class="md:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">Issue New Violation
+                    </h2>
+                    <form id="violationForm" class="space-y-4">
+                        <div>
+                            <label for="violatorAddress" class="block text-sm font-medium text-gray-700">Violator Wallet
+                                Address</label>
+                            <input type="text" id="violatorAddress" name="violatorAddress" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                                placeholder="0x...">
+                        </div>
+                        <div>
+                            <label for="licenseNumber" class="block text-sm font-medium text-gray-700">License Plate
+                                Number</label>
+                            <!-- NOTE: 'name' attribute is crucial for FormData() -->
+                            <input type="text" id="licenseNumber" name="licenseNumber" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                                placeholder="ABC-123">
+                        </div>
+                        <div>
+                            <label for="violationType" class="block text-sm font-medium text-gray-700">Violation
+                                Type</label>
+                            <!-- NOTE: 'name' attribute is crucial for FormData() -->
+                            <select id="violationType" name="violationType" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                                <option value="Speeding">Speeding</option>
+                                <option value="Parking">Illegal Parking</option>
+                                <option value="Light">Running Red Light</option>
+                                <option value="DUI">DUI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="violationAmount" class="block text-sm font-medium text-gray-700">Fine Amount (in
+                                PHP)</label>
+                            <!-- NOTE: 'name' attribute is crucial for FormData() -->
+                            <input type="number" step="1" min="1" id="violationAmount" name="violationAmount" required
+                                value="150"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        </div>
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                            <!-- NOTE: 'name' attribute is crucial for FormData() -->
+                            <input type="text" id="location" name="location" required
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                                placeholder="Main St & 5th Ave">
+                        </div>
+                        <button type="submit" id="submitViolationBtn"
+                            class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-green-700 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-live="polite">
+                            Submit Violation
+                        </button>
+                        <p id="status" class="text-center text-sm mt-3 text-red-500 font-medium"></p>
+                    </form>
+                </div>
+
+                <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Recent Issues (By You)</h2>
+                    <p class="text-sm text-gray-500">View the complete ledger by clicking "The Ledger" on the left
+                        navigation.</p>
+                    <div id="recentHistoryTableContainer" class="overflow-x-auto mt-4">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        License</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Violator</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Amount (PHP)</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Location</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Date</th>
+                                    <th
+                                        class="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentHistoryTableBody" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="6" class="text-center p-4 text-gray-500">Connect wallet to view
+                                        history.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div id="wallet-connect-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden flex items-center justify-center z-40">
+        <div class="bg-white p-6 rounded-lg shadow-2xl flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <p id="modal-text" class="text-gray-700 font-medium">Connecting to your wallet...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // ----------------- CONFIG (Keep this consistent across all files) -----------------
+        const SEPOLIA_CHAIN_ID = 11155111n; // Sepolia Chain ID as BigInt
+        const RPC_URL = "https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763"; // Sepolia RPC
+        const CONTRACT_ADDRESS = "0x12e17c73ff8219ccd3265a4b66d83221e9991093"; // Your deployed Sepolia contract
+        const ABI = [
+            // Added _location and _timestamp to the issueViolation function signature
+            "function issueViolation(string _violationId, address _violator, string _license, string _violationType, uint256 _amount, string _location, uint256 _timestamp)",
+            "function markAsPaid(string _violationId)",
+            "function getAllViolations() view returns (tuple(string violationId, address officer, address violator, string license, string violationType, uint256 amount, string location, uint256 timestamp, string status)[])",
+        ];
+        // ---------------------------------------------------------------------------------
+
+        // --- UI Elements ---
+        const connectWalletBtn = document.getElementById("connectWalletBtn");
+        const disconnectWalletBtn = document.getElementById("disconnectWalletBtn");
+        const walletConnectModal = document.getElementById("wallet-connect-modal");
+        const modalText = document.getElementById("modal-text");
+        const profile = document.getElementById("profile");
+        const walletShort = document.getElementById("walletShort");
+        const officerRole = document.getElementById("officerRole");
+        const violationForm = document.getElementById("violationForm");
+        const submitViolationBtn = document.getElementById("submitViolationBtn");
+        const status = document.getElementById("status");
+        const recentHistoryTableBody = document.getElementById("recentHistoryTableBody");
+
+
+        let officerWallet = null;
+        let provider, signer, contract;
+        let readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        let readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+        // --- Utility ---
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden");
+            messageBox.classList.remove("bg-red-100", "text-red-800", "bg-green-100", "text-green-800", "border-red-400", "border-green-400");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-400", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-400", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 5000);
+        }
+
+        function formatAddress(address) {
+            return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'N/A';
+        }
+
+        function formatTimestamp(timestamp) {
+            try {
+                // Convert BigInt seconds to JS timestamp in milliseconds
+                const date = new Date(Number(timestamp) * 1000);
+                return date.toLocaleString();
+            } catch (e) {
+                console.error("Error formatting timestamp:", e);
+                return 'Invalid Date';
+            }
+        }
+
+        function generateViolationId(license) {
+            // Simple ID: License + Current Time (as a short hex string)
+            const timestamp = Date.now().toString(16).slice(-6);
+            return `${license.replace(/-/g, '')}-${timestamp}`;
+        }
+
+        /**
+         * Updates the submit button's appearance to indicate loading state.
+         * @param {boolean} isLoading - True to show spinner and disable button, false otherwise.
+         * @param {string} text - The text to display on the button.
+         */
+        function updateSubmitButtonState(isLoading, text = 'Submit Violation') {
+            submitViolationBtn.disabled = isLoading;
+            submitViolationBtn.innerHTML = isLoading ? `
+                <svg class="animate-spin h-5 w-5 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                ${text}
+            ` : text;
+        }
+
+
+        /**
+         * Checks the connected network and attempts to switch to Sepolia if necessary.
+         * @param {ethers.BrowserProvider} currentProvider - The provider connected to window.ethereum.
+         * @returns {Promise<boolean>} - True if the network is correct (or was successfully switched), false otherwise.
+         */
+        async function checkAndSwitchNetwork(currentProvider) {
+            try {
+                const network = await currentProvider.getNetwork();
+                
+                if (network.chainId !== SEPOLIA_CHAIN_ID) {
+                    modalText.textContent = "Wrong network detected. Requesting switch to Sepolia...";
+                    displayMessage(`Switching wallet network to Sepolia (Chain ID: ${Number(SEPOLIA_CHAIN_ID)})...`, true);
+
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: ethers.toQuantity(SEPOLIA_CHAIN_ID) }], // Ethers v6 requires hex string for chainId
+                    });
+
+                    // Wait a moment for the wallet to fully switch networks
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const newNetwork = await currentProvider.getNetwork();
+                    if (newNetwork.chainId === SEPOLIA_CHAIN_ID) {
+                        displayMessage("Successfully switched to Sepolia Network.", false);
+                        return true;
+                    } else {
+                        throw new Error("Could not switch to Sepolia network.");
+                    }
+                }
+                return true;
+            } catch (switchError) {
+                // This error typically means the user rejected the switch
+                console.error("Network check/switch failed:", switchError);
+                if (switchError.code === 4902) {
+                    displayMessage("Sepolia not added to wallet. Please add it manually.", true);
+                } else if (switchError.code === 4001) {
+                    displayMessage("Network switch rejected by user. Please connect to Sepolia manually to proceed.", true);
+                } else {
+                    displayMessage("Failed to switch network. Please check your wallet's current network.", true);
+                }
+                return false;
+            }
+        }
+
+
+        // --- Core Functions ---
+
+        // --- Wallet Connection Logic (Essential for all files) ---
+        async function connectContract() {
+            if (!window.ethereum) {
+                displayMessage("Please install an EVM wallet (like MetaMask or Viction)!", true);
+                return;
+            }
+
+            try {
+                modalText.textContent = "Connecting to your wallet...";
+                walletConnectModal.classList.remove("hidden");
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                if (!accounts || accounts.length === 0) {
+                    throw { code: 4001, message: "No wallet accounts found!" };
+                }
+
+                officerWallet = accounts[0];
+                
+                // --- FIX: Check and switch network ---
+                const isNetworkCorrect = await checkAndSwitchNetwork(provider);
+                if (!isNetworkCorrect) {
+                    // If the network is incorrect and the user didn't switch, stop here.
+                    updateUIForDisconnectedState();
+                    return;
+                }
+                // --- END FIX ---
+                
+                sessionStorage.setItem("walletAddress", officerWallet);
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                updateUIForConnectedState(officerWallet);
+                displayMessage("Wallet connected to Sepolia!");
+                await loadHistory();
+            } catch (err) {
+                console.error(err);
+                displayMessage(err.code === 4001 ? "Connection rejected by user." : "Wallet connection failed. Check console.", true);
+                updateUIForDisconnectedState();
+            } finally {
+                walletConnectModal.classList.add("hidden");
+            }
+        }
+
+        // --- History Loading (Specific to Officer/Ledger) ---
+        async function loadHistory() {
+            if (!officerWallet) {
+                recentHistoryTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">Connect wallet to view history.</td></tr>`;
+                return;
+            }
+
+            recentHistoryTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-indigo-500">Loading history...</td></tr>`;
+
+            try {
+                // Ensure readContract is available for the call
+                if (!readContract) {
+                    readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+                }
+                const violations = await readContract.getAllViolations();
+
+                // Use the spread operator to create a mutable copy before calling .reverse()
+                const officerViolations = [...violations]
+                    .filter(v => v.officer.toLowerCase() === officerWallet.toLowerCase())
+                    .sort((a, b) => Number(b.timestamp) - Number(a.timestamp)) // Sort by timestamp descending
+                    .slice(0, 5); // Latest 5
+
+                if (officerViolations.length === 0) {
+                    recentHistoryTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">No recent violations issued by you.</td></tr>`;
+                    return;
+                }
+
+                recentHistoryTableBody.innerHTML = officerViolations.map(v => {
+                    const statusColor = v.status === "Paid" ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                    const amountInEth = Number(ethers.formatEther(v.amount)).toFixed(4); // Use 4 decimal places for better precision/visibility
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-2 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${v.license}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500" title="${v.violator}">${formatAddress(v.violator)}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500">₱${amountInEth}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-sm text-gray-500">${v.location}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-xs text-gray-500">${formatTimestamp(v.timestamp)}</td>
+                            <td class="px-2 py-2 whitespace-nowrap text-sm">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
+                                    ${v.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("Error loading officer history:", error);
+                recentHistoryTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-red-500">Failed to load history.</td></tr>`;
+            }
+        }
+
+        // --- Submit Violation Logic ---
+        violationForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!contract) {
+                displayMessage("Wallet not connected or not on the correct network (Sepolia).", true);
+                return;
+            }
+
+            // Immediately disable the button and show loading state
+            updateSubmitButtonState(true, "Sending Transaction...");
+            status.textContent = "Processing transaction...";
+
+            const data = new FormData(violationForm);
+
+            // --- DATA EXTRACTION ---
+            const violatorAddress = data.get("violatorAddress");
+            const licenseNumber = (data.get("licenseNumber") || "").toUpperCase();
+            const violationType = data.get("violationType");
+            const violationAmount = data.get("violationAmount"); // In ETH (string/number)
+            const location = data.get("location");
+            // --- END DATA EXTRACTION ---
+
+            const timestamp = BigInt(Math.floor(Date.now() / 1000));
+            const violationId = generateViolationId(licenseNumber);
+
+            try {
+                // Basic validation checks
+                if (!licenseNumber) {
+                    displayMessage("License Plate Number cannot be empty.", true);
+                    return;
+                }
+
+                if (!ethers.isAddress(violatorAddress)) {
+                    displayMessage("Invalid Violator Wallet Address format.", true);
+                    return;
+                }
+
+                // Convert ETH to Wei
+                const amountWei = ethers.parseEther(violationAmount);
+
+                const tx = await contract.issueViolation(
+                    violationId,
+                    violatorAddress,
+                    licenseNumber,
+                    violationType,
+                    amountWei,
+                    location,
+                    timestamp
+                );
+
+                status.textContent = `Transaction sent: ${formatAddress(tx.hash)}. Waiting for confirmation...`;
+                modalText.textContent = "Waiting for transaction confirmation on the network...";
+                walletConnectModal.classList.remove("hidden"); // Show modal for waiting
+
+                await tx.wait();
+
+                displayMessage(`Violation issued successfully! ID: ${violationId}`, false);
+                violationForm.reset();
+                loadHistory(); // Reload history after successful submission
+
+            } catch (error) {
+                console.error("Issuing violation failed:", error); // <-- This is where the error is logged
+
+                let userMessage = "Violation issue failed. ";
+                if (error.code === 4001) {
+                    userMessage += "Transaction rejected by user.";
+                } else if (error.message && error.message.includes("network does not support ENS")) {
+                    userMessage += "Error connecting to the network/chain. Check your RPC configuration.";
+                } else if (error.message && error.message.includes("The amount must be greater than zero.")) {
+                     userMessage += "The fine amount must be greater than zero.";
+                } else if (error.message && error.message.includes("violator cannot be the officer")) {
+                    userMessage += "The violator's address cannot be the same as the officer's address.";
+                } else {
+                    userMessage += "An unexpected error occurred. See console for details.";
+                }
+
+                displayMessage(userMessage, true);
+
+            } finally {
+                status.textContent = "";
+                updateSubmitButtonState(false, "Submit Violation");
+                walletConnectModal.classList.add("hidden");
+            }
+        });
+
+        // --- UI State Management ---
+        function updateUIForConnectedState(address) {
+            connectWalletBtn.classList.add("hidden");
+            profile.classList.remove("hidden");
+            profile.classList.add("flex");
+            walletShort.textContent = formatAddress(address);
+            officerWallet = address;
+            // Enable form when connected
+            violationForm.classList.remove("opacity-50", "pointer-events-none");
+            submitViolationBtn.disabled = false;
+        }
+
+        function updateUIForDisconnectedState() {
+            connectWalletBtn.classList.remove("hidden");
+            profile.classList.add("hidden");
+            profile.classList.remove("flex");
+            officerWallet = null;
+            // Disable form when disconnected
+            violationForm.classList.add("opacity-50", "pointer-events-none");
+            submitViolationBtn.disabled = true;
+            // Clear history display
+            recentHistoryTableBody.innerHTML = `<tr><td colspan="6" class="text-center p-4 text-gray-500">Connect wallet to view history.</td></tr>`;
+        }
+
+        function handleDisconnect() {
+            sessionStorage.removeItem("walletAddress");
+            updateUIForDisconnectedState();
+            displayMessage("Wallet disconnected.");
+        }
+
+        // --- Event Listeners and Initialization ---
+        connectWalletBtn.addEventListener("click", connectContract);
+        disconnectWalletBtn.addEventListener("click", handleDisconnect);
+
+        // Listen for wallet and network changes
+        if (window.ethereum) {
+            // Re-run connection logic when accounts change
+            window.ethereum.on('accountsChanged', (accounts) => {
+                console.log("Accounts changed:", accounts);
+                if (accounts.length > 0) {
+                    connectContract(); // Attempt reconnection and re-initialization
+                } else {
+                    handleDisconnect();
+                }
+            });
+
+            // Re-run connection logic when network changes
+            window.ethereum.on('chainChanged', (chainId) => {
+                console.log("Chain changed:", chainId);
+                // Re-attempt connection to check network status
+                if (officerWallet) {
+                    connectContract(); 
+                }
+            });
+        }
+
+        // Initial check on load
+        window.addEventListener('load', () => {
+            const storedAddress = sessionStorage.getItem("walletAddress");
+            if (storedAddress && window.ethereum) {
+                // If address is stored, attempt silent reconnection
+                connectContract(); 
+            } else {
+                updateUIForDisconnectedState();
+            }
+        });
+
+    </script>
+    <div id="error-dialog"
+        class="hidden fixed inset-0 bg-red-900 bg-opacity-75 z-50 flex items-center justify-center p-4" role="alert"
+        aria-modal="true">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full">
+            <h3 class="text-lg font-semibold text-red-700 mb-3 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.503-1.688 1.776-3.042l-6.928-13.06a1.996 1.996 0 00-3.552 0L3.3 17.958c-.727 1.354.236 3.042 1.776 3.042z" />
+                </svg>
+                System Error
+            </h3>
+            <p id="error-message" class="text-gray-600 mb-4 text-sm">An unknown error occurred.</p>
+            <button id="close-error-dialog"
+                class="w-full bg-red-500 text-white py-2 rounded-lg font-medium hover:bg-red-600 transition">
+                Close
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>

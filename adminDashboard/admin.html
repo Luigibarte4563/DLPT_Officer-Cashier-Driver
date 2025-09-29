@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role-Based Authorization Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        .role-button {
+            @apply bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:bg-indigo-700 transition duration-200 w-full md:w-auto transform hover:scale-[1.02] active:scale-[0.98];
+        }
+
+        .disabled-button {
+            @apply bg-gray-400 text-gray-700 cursor-not-allowed shadow-inner;
+        }
+    </style>
+    <!-- Ethers.js library for blockchain interaction -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- Global Message Box -->
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-4 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[300px] text-sm border-l-4"
+        role="alert"></div>
+
+    <!-- Header & Wallet Status -->
+    <header class="flex justify-between items-center bg-white p-4 md:px-8 rounded-b-xl shadow-lg flex-shrink-0 z-20">
+        <h1 class="text-xl md:text-2xl font-bold text-gray-800">Role Manager Dashboard</h1>
+        <div class="flex items-center space-x-4">
+            <!-- User Profile Display -->
+            <div id="profile" class="hidden items-center bg-gray-100 p-2 rounded-full shadow-inner">
+                <span id="userRoleDisplay"
+                    class="text-xs md:text-sm font-bold mr-3 uppercase text-indigo-700"></span>
+                <span id="walletShort"
+                    class="text-gray-900 font-mono text-xs bg-white py-1 px-3 rounded-full border"></span>
+            </div>
+
+            <!-- Connect Wallet Button -->
+            <button id="connectWalletBtn"
+                class="bg-indigo-600 text-white font-semibold text-sm md:text-base py-2 px-4 rounded-full shadow-md hover:bg-indigo-700 transition duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+
+        <!-- Initial Status and Current Role Section -->
+        <section class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 border-t-4 border-indigo-500">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4">Your Authorization Status</h2>
+            <div id="statusContainer" class="space-y-3">
+                <p id="authStatus" class="text-gray-500 text-lg">Please connect your wallet to view your role.</p>
+                <div id="ownerInfo" class="text-sm font-mono text-gray-600 border-t pt-3 hidden">
+                    <p>Contract Owner: <span id="ownerAddressDisplay" class="font-bold text-gray-800">...</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Role Management Panel (Owner Only) -->
+        <section id="ownerPanel" class="hidden bg-yellow-50 p-6 md:p-8 rounded-xl shadow-lg mb-8 border-l-4 border-yellow-500">
+            <h2 class="text-xl md:text-2xl font-bold text-yellow-800 mb-4">Contract Owner Actions</h2>
+            <p class="text-sm text-yellow-700 mb-6">As the **Contract Owner**, you can assign or revoke roles for any wallet address.</p>
+
+            <div class="space-y-4">
+                <input id="targetAddress" type="text" placeholder="Enter target wallet address (0x...)"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-gray-700">
+
+                <div class="flex flex-col md:flex-row gap-3">
+                    <select id="roleSelect"
+                        class="p-3 border border-gray-300 rounded-lg text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 md:w-1/3">
+                        <option value="1">1: Officer</option>
+                        <option value="2">2: Driver</option>
+                        <option value="3">3: Cashier</option>
+                    </select>
+                    <button id="assignRoleBtn" class="role-button md:w-1/3">Assign Role</button>
+                    <button id="revokeRoleBtn"
+                        class="bg-red-500 text-white font-semibold py-3 px-6 rounded-xl shadow-md hover:bg-red-600 transition duration-200 md:w-1/3">Revoke Role</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Access Control Demonstration Panel -->
+        <section id="accessControlPanel" class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-4">Restricted Application Functions</h2>
+            <p class="text-sm text-gray-600 mb-6">Click these buttons to test your current role permissions on the smart contract.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Officer Action -->
+                <div class="bg-indigo-50 p-4 rounded-xl shadow-inner border border-indigo-200">
+                    <h3 class="font-semibold text-lg text-indigo-700 mb-3">Officer Task</h3>
+                    <p class="text-xs text-indigo-600 mb-3">`processCompanyPayroll()`</p>
+                    <button id="officerActionBtn" class="role-button">
+                        Execute Payroll
+                    </button>
+                </div>
+
+                <!-- Driver Action -->
+                <div class="bg-blue-50 p-4 rounded-xl shadow-inner border border-blue-200">
+                    <h3 class="font-semibold text-lg text-blue-700 mb-3">Driver Task</h3>
+                    <p class="text-xs text-blue-600 mb-3">`updateVehicleLog()`</p>
+                    <button id="driverActionBtn" class="role-button">
+                        Update Log
+                    </button>
+                </div>
+
+                <!-- Cashier Action -->
+                <div class="bg-green-50 p-4 rounded-xl shadow-inner border border-green-200">
+                    <h3 class="font-semibold text-lg text-green-700 mb-3">Cashier Task</h3>
+                    <p class="text-xs text-green-600 mb-3">`confirmCustomerPayment()`</p>
+                    <button id="cashierActionBtn" class="role-button">
+                        Confirm Payment
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Wallet Connecting Modal -->
+    <div id="wallet-connect-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-40 backdrop-blur-sm">
+        <div class="bg-white p-6 rounded-lg shadow-2xl flex items-center space-x-3 border-t-4 border-indigo-500">
+            <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <p class="text-gray-700 font-medium">Waiting for wallet connection...</p>
+        </div>
+    </div>
+
+    <script>
+        // ----------------- CONFIGURATION -----------------
+        const CONTRACT_ADDRESS = "0xYourDeployedContractAddressGoesHere"; // REPLACE THIS with your deployed contract address
+        const RPC_URL = "https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763"; // Example Sepolia RPC
+
+        // Simplified ABI for the role contract functions
+        const ABI = [
+            "function contractOwner() view returns (address)",
+            "function getRole(address _user) view returns (uint8)",
+            "function assignRole(address _user, uint8 _role)",
+            "function revokeRole(address _user)",
+            "function processCompanyPayroll() returns (string)",
+            "function updateVehicleLog() returns (string)",
+            "function confirmCustomerPayment() returns (string)"
+        ];
+
+        const ROLES_MAP = {
+            0: 'NONE',
+            1: 'OFFICER',
+            2: 'DRIVER',
+            3: 'CASHIER'
+        };
+        // -------------------------------------------------
+
+        // --- Global State ---
+        let userWallet = null;
+        let ownerAddress = null;
+        let provider, signer, contract;
+        let readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        let readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+        // --- UI Elements ---
+        const connectWalletBtn = document.getElementById("connectWalletBtn");
+        const walletConnectModal = document.getElementById("wallet-connect-modal");
+        const profile = document.getElementById("profile");
+        const walletShort = document.getElementById("walletShort");
+        const userRoleDisplay = document.getElementById("userRoleDisplay");
+        const authStatus = document.getElementById("authStatus");
+        const ownerInfo = document.getElementById("ownerInfo");
+        const ownerAddressDisplay = document.getElementById("ownerAddressDisplay");
+        const ownerPanel = document.getElementById("ownerPanel");
+        const targetAddress = document.getElementById("targetAddress");
+        const roleSelect = document.getElementById("roleSelect");
+        const assignRoleBtn = document.getElementById("assignRoleBtn");
+        const revokeRoleBtn = document.getElementById("revokeRoleBtn");
+        const officerActionBtn = document.getElementById("officerActionBtn");
+        const driverActionBtn = document.getElementById("driverActionBtn");
+        const cashierActionBtn = document.getElementById("cashierActionBtn");
+
+
+        // --- Utility Functions ---
+
+        /**
+         * @dev Displays a floating message notification.
+         */
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden", "bg-red-100", "text-red-800", "border-red-500", "bg-green-100", "text-green-800", "border-green-500");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-500", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-500", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 6000);
+        }
+
+        function formatAddress(address) {
+            if (!address) return 'N/A';
+            return `${address.slice(0, 6)}...${address.slice(-4)}`;
+        }
+
+        // --- Wallet Connection Logic ---
+
+        function updateUIForConnectedState(address, roleName, isOwner) {
+            userWallet = address;
+            walletShort.textContent = formatAddress(address);
+            userRoleDisplay.textContent = roleName;
+
+            profile.classList.remove("hidden");
+            profile.classList.add("flex");
+            connectWalletBtn.classList.add("hidden");
+
+            // Update main status card
+            authStatus.textContent = `Current Role: ${roleName}. ${isOwner ? 'You are the Contract Owner.' : 'You are a standard user.'}`;
+            authStatus.classList.toggle('text-yellow-700', isOwner);
+            authStatus.classList.toggle('font-bold', isOwner);
+            authStatus.classList.toggle('text-gray-500', !isOwner);
+
+            // Toggle Owner Panel visibility
+            ownerPanel.classList.toggle("hidden", !isOwner);
+        }
+
+        function updateUIForDisconnectedState() {
+            userWallet = null;
+            profile.classList.add("hidden");
+            profile.classList.remove("flex");
+            connectWalletBtn.classList.remove("hidden");
+            ownerPanel.classList.add("hidden");
+            userRoleDisplay.textContent = '';
+            authStatus.textContent = 'Please connect your wallet to view your role.';
+            authStatus.classList.remove('text-yellow-700', 'font-bold');
+            targetAddress.value = ''; // Clear address input
+        }
+
+        async function getOwnerAddress() {
+            try {
+                ownerAddress = await readContract.contractOwner();
+                ownerAddressDisplay.textContent = formatAddress(ownerAddress);
+                ownerInfo.classList.remove("hidden");
+            } catch (error) {
+                console.error("Could not fetch contract owner:", error);
+                ownerAddressDisplay.textContent = 'Error fetching address.';
+                displayMessage("Error: Contract Owner address could not be fetched.", true);
+            }
+        }
+
+        async function checkUserRole(address) {
+            if (!address) return;
+
+            try {
+                // Call the read-only function
+                const roleId = await readContract.getRole(address);
+                const roleName = ROLES_MAP[Number(roleId)] || ROLES_MAP[0];
+                
+                const isOwner = address.toLowerCase() === ownerAddress.toLowerCase();
+                
+                updateUIForConnectedState(address, roleName, isOwner);
+                
+                // Clear any previous address in the assignment field
+                targetAddress.value = '';
+
+            } catch (error) {
+                console.error("Error checking role:", error);
+                displayMessage("Failed to check your role. Contract may not be deployed or is configured incorrectly.", true);
+            }
+        }
+
+        async function connectWallet() {
+            if (!window.ethereum) {
+                displayMessage("Please install MetaMask or an Ethereum browser extension!", true);
+                return;
+            }
+
+            try {
+                walletConnectModal.classList.remove("hidden");
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                
+                if (!accounts || accounts.length === 0) {
+                    throw { code: 4001, message: "No wallet accounts found!" };
+                }
+
+                userWallet = accounts[0];
+                signer = await provider.getSigner();
+                // Create a contract instance using the connected signer for write operations
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                displayMessage("Wallet connected successfully!");
+                await checkUserRole(userWallet); // Check the role of the connected user
+
+                // Event listener for account changes
+                window.ethereum.on('accountsChanged', (newAccounts) => {
+                    if (newAccounts.length > 0) {
+                        checkUserRole(newAccounts[0]);
+                    } else {
+                        updateUIForDisconnectedState();
+                        displayMessage("Wallet disconnected. Please connect again.", true);
+                    }
+                });
+
+            } catch (err) {
+                console.error(err);
+                const message = err.code === 4001 ? "Connection rejected by user." : "Wallet connection failed.";
+                displayMessage(message, true);
+                updateUIForDisconnectedState();
+            } finally {
+                walletConnectModal.classList.add("hidden");
+            }
+        }
+
+        // --- Contract Write Operations (Owner Only) ---
+
+        async function handleRoleAssignment(isAssign) {
+            if (!userWallet || userWallet.toLowerCase() !== ownerAddress.toLowerCase()) {
+                return displayMessage("Error: Only the Contract Owner can perform this action.", true);
+            }
+            
+            const target = targetAddress.value.trim();
+            const roleId = isAssign ? parseInt(roleSelect.value) : 0;
+            
+            if (!target || !ethers.isAddress(target)) {
+                return displayMessage("Error: Please enter a valid target wallet address.", true);
+            }
+            if (isAssign && roleId === 0) { // Role 0 is NONE, which means revoke
+                 return displayMessage("Error: Cannot assign role 'None'. Use Revoke instead.", true);
+            }
+
+            try {
+                // Determine function name
+                const functionName = isAssign ? "assignRole" : "revokeRole";
+                const roleName = isAssign ? ROLES_MAP[roleId] : 'NONE';
+                
+                let tx;
+                if (isAssign) {
+                    tx = await contract.assignRole(target, roleId);
+                } else {
+                    tx = await contract.revokeRole(target);
+                }
+
+                displayMessage(`Sending transaction to ${isAssign ? 'assign' : 'revoke'} role ${roleName}...`);
+                
+                await tx.wait(); // Wait for transaction confirmation
+                
+                displayMessage(`${roleName} role successfully ${isAssign ? 'assigned to' : 'revoked from'} ${formatAddress(target)}.`, false);
+                
+                // If the target is the connected user, update their role immediately
+                if (target.toLowerCase() === userWallet.toLowerCase()) {
+                    checkUserRole(userWallet);
+                }
+                
+            } catch (error) {
+                console.error("Role management transaction failed:", error);
+                displayMessage(`Transaction Failed: ${error.reason || error.message || 'Check console for details.'}`, true);
+            }
+        }
+        
+        // --- Restricted Function Calls ---
+        
+        async function callRestrictedFunction(funcName, role) {
+            if (!userWallet) {
+                return displayMessage("Please connect your wallet first.", true);
+            }
+
+            try {
+                // Call the function
+                const tx = await contract[funcName]();
+                displayMessage(`Calling ${funcName}... Awaiting transaction confirmation.`);
+                
+                const receipt = await tx.wait(); // Wait for transaction confirmation
+                
+                // If successful, the contract will return the access granted message.
+                // We'll try to find the return value or rely on the receipt success.
+                // Note: The actual return value might not be easily accessible here, 
+                // so we rely on the transaction success/failure and a generic success message.
+
+                displayMessage(`✅ Access GRANTED: ${funcName} executed successfully! Your role (${ROLES_MAP[role]}) has permission.`, false);
+
+            } catch (error) {
+                console.error(`${funcName} failed:`, error);
+                
+                // Common reason for failure is the "revert" from the onlyRole modifier
+                let errorMessage = `Access DENIED for your role (${userRoleDisplay.textContent}).`;
+                if (error.reason && error.reason.includes("required")) {
+                    errorMessage += ` Required Role: ${ROLES_MAP[role]}.`;
+                } else if (error.reason) {
+                    errorMessage += ` Reason: ${error.reason}`;
+                } else {
+                     errorMessage += ` Check console for details.`;
+                }
+                
+                displayMessage(errorMessage, true);
+            }
+        }
+
+
+        // --- Event Listeners ---
+        connectWalletBtn.addEventListener("click", connectWallet);
+        assignRoleBtn.addEventListener("click", () => handleRoleAssignment(true));
+        revokeRoleBtn.addEventListener("click", () => handleRoleAssignment(false));
+
+        // Restricted function tests
+        officerActionBtn.addEventListener("click", () => callRestrictedFunction('processCompanyPayroll', 1));
+        driverActionBtn.addEventListener("click", () => callRestrictedFunction('updateVehicleLog', 2));
+        cashierActionBtn.addEventListener("click", () => callRestrictedFunction('confirmCustomerPayment', 3));
+
+
+        // --- Initialization on Load ---
+        window.onload = async () => {
+            // First, fetch the immutable owner address (read-only call)
+            await getOwnerAddress();
+
+            // Check if MetaMask is available and connect automatically if previously approved
+            if (window.ethereum) {
+                const provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.listAccounts();
+
+                if (accounts.length > 0) {
+                    await connectWallet(); // Attempt full connection and role check
+                } else {
+                    updateUIForDisconnectedState();
+                }
+            } else {
+                updateUIForDisconnectedState();
+            }
+        };
+    </script>
+</body>
+
+</html>
