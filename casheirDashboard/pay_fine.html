@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLPT Cashier Portal - Pay Fine</title>
+    <link rel="icon" type="image/png" href=".././LOGO/DLPT-LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        /* Custom style for the active navigation link - Cashier page is active here */
+        .nav-link.active {
+            /* Desktop Styles */
+            @apply md:bg-indigo-50 md:text-indigo-700 md:border-l-4 md:border-indigo-600 md:font-semibold;
+            /* Mobile Styles */
+            @apply text-indigo-700 font-bold bg-indigo-100;
+        }
+
+        /* Ensure main content is scrollable and pushes footer content down */
+        .main-content-area {
+            /* On mobile, add padding equivalent to the height of the bottom nav (approx 16-20 Tailwind units) */
+            padding-bottom: 5rem;
+            /* ~p-20 */
+        }
+
+        /* Ensure the mobile nav is truly sticky */
+        .mobile-sticky-nav {
+            position: sticky;
+            bottom: 0;
+        }
+
+        /* Hide the long link text on mobile */
+        .nav-text {
+            @apply hidden md:inline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[250px] text-sm border"
+        role="alert"></div>
+
+    <header class="flex justify-between items-center bg-white p-4 md:px-8 rounded-b-xl shadow-md flex-shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <img src=".././LOGO/DLPT-LOGO.png" alt="DLPT Logo"
+                class="h-12 w-12 rounded-full shadow-md border-4 border-black-700">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">DLPT Cashier Portal</h1>
+        </div>
+        <div class="flex items-center space-x-2 md:space-x-4">
+            <div id="profile" class="hidden items-center bg-indigo-50 p-1 md:p-2 rounded-full shadow-inner">
+                <span id="officerRole"
+                    class="hidden md:inline text-xs md:text-sm font-medium text-indigo-700 mr-3">Cashier / Admin</span>
+                <span id="walletShort"
+                    class="text-indigo-900 font-mono text-xs bg-indigo-200 py-1 px-3 rounded-full"></span>
+                <button id="disconnectWalletBtn"
+                    class="ml-3 p-1 rounded-full text-indigo-600 hover:bg-indigo-300 transition"
+                    title="Disconnect Wallet">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+            <button id="connectWalletBtn"
+                class="bg-indigo-600 text-white font-semibold text-sm md:text-base py-2 px-3 md:px-4 rounded-full shadow-lg hover:bg-indigo-700 transition duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 flex-col md:flex-row">
+
+        <!-- START OF NAVIGATION BAR -->
+        <nav
+            class="w-full md:w-64 bg-white shadow-xl flex-shrink-0 border-t md:border-r md:border-t-0 order-last md:order-none mobile-sticky-nav z-10">
+            <ul
+                class="flex md:flex-col justify-around md:justify-start items-center md:items-stretch space-y-0 md:space-y-2 p-2">
+
+                <!-- 1. Home -->
+                <li class="w-full">
+                    <a href="homeCashier.html"
+                        class="nav-link active flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Home</span>
+                    </a>
+                </li>
+
+                <!-- 2. Process Payment -->
+                <li class="w-full">
+                    <a href="pay_fine.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8h1.03M12 16h1.03M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Process Payment</span>
+                    </a>
+                </li>
+
+                <!-- 3. Payment Ledger -->
+                <li class="w-full">
+                    <a href="ledger.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fill-rule="evenodd"
+                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Payment Ledger</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- END OF NAVIGATION BAR -->
+
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto main-content-area">
+
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- 1. Search Bar for Efficiency -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-800 border-b pb-2">
+                        Find Violation (License Plate or ID)
+                    </h2>
+                    <form id="searchForm" class="flex flex-col md:flex-row gap-3">
+                        <input type="text" id="searchInput" required
+                            class="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 border text-lg"
+                            placeholder="Enter License Plate (e.g., ABC-123) or Violation ID"
+                            title="License Plate or Violation ID">
+
+                        <button type="submit" id="searchBtn"
+                            class="bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
+                            aria-live="polite">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Search
+                        </button>
+                    </form>
+                    <p id="searchStatus" class="text-center text-sm mt-3 text-gray-500 font-medium"></p>
+                </div>
+
+                <!-- 2. Violation Details and Payment Form (Hidden until search result) -->
+                <div id="paymentPanel" class="bg-white p-6 rounded-xl shadow-lg hidden">
+                    <h2 class="text-xl md:text-2xl font-semibold mb-6 text-gray-800 border-b pb-2">
+                        Violation Found - Process Payment
+                    </h2>
+
+                    <!-- Violation Details Display -->
+                    <div id="violationDetails"
+                        class="space-y-3 p-4 bg-indigo-50 rounded-lg mb-6 border border-indigo-200">
+                        <p class="text-sm text-indigo-700 font-semibold">Violation ID: <span id="detailId"
+                                class="font-normal text-indigo-900"></span></p>
+                        <p class="text-lg font-bold text-gray-900">License Plate: <span id="detailLicense"
+                                class="text-indigo-600"></span></p>
+                        <div class="grid grid-cols-2 gap-y-2 text-sm text-gray-700">
+                            <p>Type: <span id="detailType" class="font-medium"></span></p>
+                            <p>Location: <span id="detailLocation" class="font-medium"></span></p>
+                            <p>Issued By: <span id="detailOfficer" class="font-medium"></span></p>
+                            <p>Issued To (Violator): <span id="detailViolator" class="font-medium"></span></p>
+                        </div>
+                        <p class="text-2xl font-extrabold text-green-700 pt-3">
+                            Amount Due: <span id="detailAmount">0.0</span> PHP
+                        </p>
+                    </div>
+
+                    <!-- Pay Form - Transaction Hash input has been removed -->
+                    <form id="paymentForm" class="space-y-4">
+                        <input type="hidden" id="hiddenViolationId" value="">
+
+                        <!-- Confirmation message replacing the removed input field -->
+                        <div class="p-4 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-300">
+                            <p class="font-semibold text-sm">Action required:</p>
+                            <p class="text-sm mt-1">
+                                Please confirm that the violator has successfully paid the fine amount
+                                via the designated payment channel before clicking the button below.
+                                This action marks the violation as paid on the blockchain.
+                            </p>
+                        </div>
+
+                        <button type="submit" id="payBtn"
+                            class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-xl hover:bg-green-700 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-live="polite">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.35 2.76 1l-2.76 4m0 0v-4m0 4v4m0 0c-1.657 0-3-.895-3-2s1.343-2 3-2m0 0c1.11 0 2.08-.35 2.76-.99L12 12m-2-4l-2 2m4 0l-2 2m-4 0c1.11 0 2.08.35 2.76 1l-2.76 4m0 0v-4m0 4v4m0 0c-1.657 0-3-.895-3-2s1.343-2 3-2m0 0c1.11 0 2.08-.35 2.76-.99L12 12m-2-4l-2 2m4 0l-2 2" />
+                            </svg>
+                            Confirm Payment & Mark as PAID
+                        </button>
+                        <p id="payStatus" class="text-center text-sm mt-3 text-red-500 font-medium"></p>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Wallet Connection Modal -->
+    <div id="wallet-connect-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden flex items-center justify-center z-40">
+        <div class="bg-white p-6 rounded-lg shadow-2xl flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <p id="modal-text" class="text-gray-700 font-medium">Connecting to your wallet...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // ----------------- CONFIG (Keep this consistent across all files) -----------------
+        const RPC_URL = "https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763"; // Sepolia RPC
+        const CONTRACT_ADDRESS = "0x12e17c73ff8219ccd3265a4b66d83221e9991093"; // Your deployed Sepolia contract
+        const ABI = [
+            // Function signatures copied from reference and necessary for this cashier view
+            "function issueViolation(string _violationId, address _violator, string _license, string _violationType, uint256 _amount, string _location, uint256 _timestamp)",
+            "function markAsPaid(string _violationId)",
+            "function getAllViolations() view returns (tuple(string violationId, address officer, address violator, string license, string violationType, uint256 amount, string location, uint256 timestamp, string status)[])",
+        ];
+        // ---------------------------------------------------------------------------------
+
+        // --- UI Elements ---
+        const connectWalletBtn = document.getElementById("connectWalletBtn");
+        const disconnectWalletBtn = document.getElementById("disconnectWalletBtn");
+        const walletConnectModal = document.getElementById("wallet-connect-modal");
+        const modalText = document.getElementById("modal-text");
+        const profile = document.getElementById("profile");
+        const walletShort = document.getElementById("walletShort");
+        const officerRole = document.getElementById("officerRole");
+        const searchForm = document.getElementById("searchForm");
+        const searchInput = document.getElementById("searchInput");
+        const searchBtn = document.getElementById("searchBtn");
+        const searchStatus = document.getElementById("searchStatus");
+        const paymentPanel = document.getElementById("paymentPanel");
+        const paymentForm = document.getElementById("paymentForm");
+        const payBtn = document.getElementById("payBtn");
+        const payStatus = document.getElementById("payStatus");
+
+        // Detail elements
+        const detailId = document.getElementById("detailId");
+        const detailLicense = document.getElementById("detailLicense");
+        const detailType = document.getElementById("detailType");
+        const detailLocation = document.getElementById("detailLocation");
+        const detailOfficer = document.getElementById("detailOfficer");
+        const detailViolator = document.getElementById("detailViolator");
+        const detailAmount = document.getElementById("detailAmount");
+        const hiddenViolationId = document.getElementById("hiddenViolationId");
+
+        // The transaction hash input reference is removed.
+
+        let cashierWallet = null;
+        let provider, signer, contract;
+        let readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        let readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+        // --- Utility ---
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden");
+            messageBox.classList.remove("bg-red-100", "text-red-800", "bg-green-100", "text-green-800", "border-red-400", "border-green-400");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-400", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-400", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 5000);
+        }
+
+        function formatAddress(address) {
+            return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'N/A';
+        }
+
+        /**
+         * Updates the button's appearance to indicate loading state.
+         */
+        function updateButtonState(btn, isLoading, text, loadingText) {
+            btn.disabled = isLoading;
+            btn.innerHTML = isLoading ? `
+                <svg class="animate-spin h-5 w-5 text-white mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                ${loadingText}
+            ` : text;
+        }
+
+        // --- Core Functions ---
+
+        async function searchViolation(query) {
+            if (!readContract) {
+                searchStatus.textContent = "Contract not initialized.";
+                return;
+            }
+
+            searchStatus.textContent = "Searching all violations on the blockchain...";
+            updateButtonState(searchBtn, true, '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>Search', 'Searching...');
+            paymentPanel.classList.add("hidden"); // Hide previous results
+
+            try {
+                const violations = await readContract.getAllViolations();
+                const normalizedQuery = query.toUpperCase().trim();
+
+                const foundViolation = violations.find(v =>
+                    v.license.toUpperCase() === normalizedQuery || v.violationId.toUpperCase() === normalizedQuery
+                );
+
+                if (foundViolation) {
+                    if (foundViolation.status === "Paid") {
+                        searchStatus.textContent = `Violation for ${foundViolation.license} (ID: ${foundViolation.violationId}) is already PAID.`;
+                        displayMessage("Violation is already paid.", true);
+                    } else {
+                        // Display the unpaid violation details
+                        displayViolationDetails(foundViolation);
+                        searchStatus.textContent = `Violation found for License ${foundViolation.license}. Ready to process payment.`;
+                        paymentPanel.classList.remove("hidden");
+                    }
+                } else {
+                    searchStatus.textContent = `No UNPAID violation found for query: ${query}`;
+                    displayMessage(`No unpaid violation found for "${query}"`, true);
+                }
+
+            } catch (error) {
+                console.error("Error searching for violation:", error);
+                searchStatus.textContent = "Failed to search for violation. Check console for error.";
+                displayMessage("Error retrieving violation data.", true);
+            } finally {
+                updateButtonState(searchBtn, false, '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>Search', 'Searching...');
+            }
+        }
+
+        function displayViolationDetails(violation) {
+            const amountInEth = ethers.formatEther(violation.amount);
+
+            hiddenViolationId.value = violation.violationId;
+            detailId.textContent = violation.violationId;
+            detailLicense.textContent = violation.license;
+            detailType.textContent = violation.violationType;
+            detailLocation.textContent = violation.location;
+            detailOfficer.textContent = formatAddress(violation.officer);
+            detailViolator.textContent = formatAddress(violation.violator);
+            detailAmount.textContent = Number(amountInEth).toFixed(4); // Display up to 4 decimal places
+            payStatus.textContent = ""; // Clear previous payment status
+            // The transaction hash input is no longer present, so no need to clear its value.
+        }
+
+        /**
+         * Marks a violation as paid on the blockchain. The cashier is assumed to have verified the off-chain payment.
+         */
+        async function handlePayFine(violationId) {
+            if (!contract) {
+                displayMessage("Cashier wallet not connected. Please connect your wallet first.", true);
+                return;
+            }
+
+            // Immediately disable the button and show loading state
+            updateButtonState(payBtn, true, 'Confirm Payment & Mark as PAID', 'Sending Transaction...');
+            payStatus.textContent = "Processing payment transaction to mark fine as paid...";
+
+            try {
+                // Call the contract function to mark the violation as paid
+                const tx = await contract.markAsPaid(violationId);
+
+                payStatus.textContent = `Transaction sent: ${formatAddress(tx.hash)}. Waiting for confirmation...`;
+                modalText.textContent = "Waiting for transaction confirmation on the network...";
+                walletConnectModal.classList.remove("hidden"); // Show modal for waiting
+
+                await tx.wait();
+
+                displayMessage(`Violation ID ${violationId} successfully marked as PAID!`, false);
+                paymentPanel.classList.add("hidden"); // Hide panel after successful payment
+                searchForm.reset(); // Clear search form
+                searchStatus.textContent = "";
+
+            } catch (error) {
+                console.error("Payment failed:", error);
+
+                let userMessage = "Transaction Failed: Check the console for details.";
+
+                if (error.code === 4001) {
+                    userMessage = "Transaction Rejected: You declined the transaction in your wallet (MetaMask).";
+                } else if (error.reason && typeof error.reason === 'string') {
+                    userMessage = `Transaction Failed. Reason: **${error.reason}**. (Contract Revert)`;
+                } else {
+                    userMessage = error.message || "An unknown error occurred.";
+                }
+
+                payStatus.textContent = "Transaction Failed. See console for full details.";
+                displayMessage(`Error: ${userMessage}`, true);
+
+            } finally {
+                walletConnectModal.classList.add("hidden");
+                updateButtonState(payBtn, false, 'Confirm Payment & Mark as PAID', 'Sending Transaction...');
+            }
+        }
+
+
+        // --- Wallet Connection Logic ---
+        async function connectContract() {
+            if (!window.ethereum) {
+                displayMessage("Please install MetaMask!", true);
+                return;
+            }
+
+            try {
+                modalText.textContent = "Connecting to your wallet...";
+                walletConnectModal.classList.remove("hidden");
+
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                if (!accounts || accounts.length === 0) {
+                    throw { code: 4001, message: "No wallet accounts found!" };
+                }
+
+                cashierWallet = accounts[0];
+                sessionStorage.setItem("walletAddress", cashierWallet);
+
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                updateUIForConnectedState(cashierWallet);
+                displayMessage("Wallet connected! You are ready to process payments.");
+            } catch (err) {
+                console.error(err);
+                displayMessage(err.code === 4001 ? "Connection rejected by user." : "Wallet connection failed.", true);
+                updateUIForDisconnectedState();
+            } finally {
+                walletConnectModal.classList.add("hidden");
+            }
+        }
+
+        // --- Wallet UI ---
+        function updateUIForConnectedState(address) {
+            cashierWallet = address; // Set the global variable
+            walletShort.textContent = formatAddress(address);
+            profile.classList.remove("hidden");
+            profile.classList.add("flex");
+            officerRole.classList.remove("hidden");
+            connectWalletBtn.classList.add("hidden");
+        }
+
+        function updateUIForDisconnectedState() {
+            cashierWallet = null;
+            sessionStorage.removeItem("walletAddress");
+            profile.classList.add("hidden");
+            profile.classList.remove("flex");
+            connectWalletBtn.classList.remove("hidden");
+            paymentPanel.classList.add("hidden");
+            searchStatus.textContent = "Connect wallet to start searching for fines.";
+        }
+
+        function disconnectWallet() {
+            updateUIForDisconnectedState();
+            displayMessage("Wallet disconnected.");
+        }
+
+        // --- Event Listeners ---
+        connectWalletBtn.addEventListener("click", connectContract);
+        disconnectWalletBtn.addEventListener("click", disconnectWallet);
+
+        searchForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (!cashierWallet) {
+                displayMessage("Please connect your cashier wallet first.", true);
+                return;
+            }
+            searchViolation(searchInput.value);
+        });
+
+        paymentForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const id = hiddenViolationId.value;
+            // Transaction hash input removed. Payment now relies on off-chain verification by the cashier.
+            if (id) {
+                handlePayFine(id);
+            } else {
+                displayMessage("No valid violation selected to pay.", true);
+            }
+        });
+
+        window.onload = () => {
+            // Check for saved wallet address on load
+            const savedWallet = sessionStorage.getItem("walletAddress");
+            if (savedWallet) {
+                updateUIForConnectedState(savedWallet);
+                connectContract(); // Attempt to re-connect fully
+            }
+            searchStatus.textContent = "Enter a License Plate or Violation ID above.";
+        };
+    </script>
+</body>
+
+</html>

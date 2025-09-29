@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLPT Cashier Portal - Home</title>
+    <link rel="icon" type="image/png" href=".././LOGO/DLPT-LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        /* Custom style for the active navigation link - Home page is always active here */
+        .nav-link.active {
+            /* Desktop Styles */
+            @apply md:bg-indigo-50 md:text-indigo-700 md:border-l-4 md:border-indigo-600 md:font-semibold;
+            /* Mobile Styles */
+            @apply text-indigo-700 font-bold bg-indigo-100;
+        }
+
+        /* Hide the long link text on mobile */
+        .nav-text {
+            @apply hidden md:inline;
+        }
+
+        /* Ensure main content is scrollable and pushes footer content down */
+        .main-content-area {
+            /* On mobile, add padding equivalent to the height of the bottom nav (approx 16-20 Tailwind units) */
+            padding-bottom: 5rem;
+            /* ~p-20 */
+        }
+
+        /* Ensure the mobile nav is truly sticky */
+        .mobile-sticky-nav {
+            position: sticky;
+            bottom: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <div id="messageBox"
+        class="fixed top-4 right-4 p-3 rounded-lg shadow-xl hidden transition duration-300 z-50 min-w-[250px] text-sm border"
+        role="alert"></div>
+
+    <header class="flex justify-between items-center bg-white p-4 md:px-8 rounded-b-xl shadow-md flex-shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <img src=".././LOGO/DLPT-LOGO.png" alt="DLPT Logo"
+                class="h-12 w-12 rounded-full shadow-md border-4 border-black-700">
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">DLPT Cashier Portal</h1>
+        </div>
+        <div class="flex items-center space-x-2 md:space-x-4">
+            <!-- Updated Profile Display -->
+            <div id="profile" class="hidden items-center bg-indigo-50 p-1 md:p-2 rounded-full shadow-inner">
+                <span id="officerRole"
+                    class="hidden md:inline text-xs md:text-sm font-medium text-indigo-700 mr-3">Cashier</span>
+                <span id="walletShort"
+                    class="text-indigo-900 font-mono text-xs bg-indigo-200 py-1 px-3 rounded-full"></span>
+            </div>
+
+            <!-- NEW: Dedicated Logout Button (Shown when connected) -->
+            <button id="logoutButton"
+                class="hidden bg-red-600 text-white font-semibold text-sm md:text-base py-2 px-3 md:px-4 rounded-full shadow-lg hover:bg-red-700 transition duration-200">
+                Logout
+            </button>
+
+            <!-- Connect Wallet Button (Shown when disconnected) -->
+            <button id="connectWalletBtn"
+                class="bg-indigo-600 text-white font-semibold text-sm md:text-base py-2 px-3 md:px-4 rounded-full shadow-lg hover:bg-indigo-700 transition duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 flex-col md:flex-row">
+
+        <!-- START OF NAVIGATION BAR -->
+        <nav
+            class="w-full md:w-64 bg-white shadow-xl flex-shrink-0 border-t md:border-r md:border-t-0 order-last md:order-none mobile-sticky-nav z-10">
+            <ul
+                class="flex md:flex-col justify-around md:justify-start items-center md:items-stretch space-y-0 md:space-y-2 p-2">
+
+                <!-- 1. Home -->
+                <li class="w-full">
+                    <a href="homeCashier.html"
+                        class="nav-link active flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Home</span>
+                    </a>
+                </li>
+
+                <!-- 2. Process Payment -->
+                <li class="w-full">
+                    <a href="pay_fine.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8h1.03M12 16h1.03M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Process Payment</span>
+                    </a>
+                </li>
+
+                <!-- 3. Payment Ledger -->
+                <li class="w-full">
+                    <a href="ledger.html"
+                        class="nav-link flex flex-col md:flex-row items-center justify-center md:justify-start p-2 text-gray-700 rounded-lg transition hover:bg-indigo-50 hover:text-indigo-600 w-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:mr-3" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path fill-rule="evenodd"
+                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-xs md:text-sm mt-1 md:mt-0">Payment Ledger</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <!-- END OF NAVIGATION BAR -->
+
+
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto main-content-area">
+
+            <!-- HOME PAGE CONTENT -->
+            <section id="home-view" class="content-section grid grid-cols-1 gap-8">
+                <div class="lg:col-span-3 bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Welcome, Cashier!</h2>
+                    <p class="text-gray-600 mb-6 text-sm md:text-base">This portal allows you to securely process fine
+                        payments and view the updated public ledger on the blockchain. Use the navigation panel or quick
+                        actions below to process transactions.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                        <!-- Total Violations Issued (Now Total Fines on Ledger) -->
+                        <div class="bg-indigo-50 p-4 md:p-6 rounded-xl shadow-inner flex items-center space-x-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8 text-indigo-600"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <!-- Ledger/List Icon -->
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            <div>
+                                <p class="text-xl md:text-2xl font-bold text-indigo-700" id="totalViolationsCount">--
+                                </p>
+                                <p class="text-xs md:text-sm text-indigo-500">Total Fines on Ledger</p>
+                            </div>
+                        </div>
+                        <!-- Unpaid Fines (Requires Processing) -->
+                        <div class="bg-red-50 p-4 md:p-6 rounded-xl shadow-inner flex items-center space-x-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8 text-red-600"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <!-- Warning/Pending Icon -->
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <div>
+                                <p class="text-xl md:text-2xl font-bold text-red-700" id="unpaidFinesCount">--</p>
+                                <p class="text-xs md:text-sm text-red-500">Fines Pending Payment</p>
+                            </div>
+                        </div>
+                        <!-- Paid Fines (Successfully Processed) -->
+                        <div class="bg-green-50 p-4 md:p-6 rounded-xl shadow-inner flex items-center space-x-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 md:h-8 md:w-8 text-green-600"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <!-- Money Check Icon -->
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p class="text-xl md:text-2xl font-bold text-green-700" id="paidFinesCount">--</p>
+                                <p class="text-xs md:text-sm text-green-500">Payments Processed</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-3">Quick Actions</h3>
+                        <div class="flex flex-wrap gap-3 md:gap-4">
+                            <!-- Process New Payment (Main Cashier Action) -->
+                            <a href="pay_fine.html"
+                                class="bg-green-600 text-white text-sm py-2 px-3 rounded-lg shadow-md hover:bg-green-700 transition duration-200 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2l.021.01a1.5 1.5 0 011.025-.56L12 14l3.954-1.55a1.5 1.5 0 011.025.56L19 15h2V9h-4z" />
+                                </svg>
+                                <span>Process New Payment</span>
+                            </a>
+                            <!-- View Full Ledger/History -->
+                            <a href="ledger.html"
+                                class="bg-gray-200 text-gray-800 text-sm py-2 px-3 rounded-lg shadow-md hover:bg-gray-300 transition duration-200 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                    <path fill-rule="evenodd"
+                                        d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h6a1 1 0 100-2H7zm0 4a1 1 0 100 2h6a1 1 0 100-2H7z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                <span>View Payment History</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- END HOME PAGE CONTENT -->
+
+        </main>
+    </div>
+
+    <div id="wallet-connect-modal"
+        class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden flex items-center justify-center z-40">
+        <div class="bg-white p-6 rounded-lg shadow-2xl flex items-center space-x-3">
+            <svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+            <p class="text-gray-700 font-medium">Connecting to your wallet...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // ----------------- CONFIG (Keep this consistent across all files) -----------------
+        const RPC_URL = "https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763"; // Sepolia RPC
+        const CONTRACT_ADDRESS = "0x12e17c73ff8219ccd3265a4b66d83221e9991093"; // Your deployed Sepolia contract
+        const ABI = [
+            // Added _location and _timestamp to the issueViolation function signature
+            "function issueViolation(string _violationId, address _violator, string _license, string _violationType, uint256 _amount, string _location, uint256 _timestamp)",
+            "function markAsPaid(string _violationId)",
+            "function getAllViolations() view returns (tuple(string violationId, address officer, address violator, string license, string violationType, uint256 amount, string location, uint256 timestamp, string status)[])",
+        ];
+        // ---------------------------------------------------------------------------------
+
+        // --- UI Elements ---
+        const connectWalletBtn = document.getElementById("connectWalletBtn");
+        const logoutButton = document.getElementById("logoutButton");
+        const walletConnectModal = document.getElementById("wallet-connect-modal");
+        const profile = document.getElementById("profile");
+        const walletShort = document.getElementById("walletShort");
+        const officerRole = document.getElementById("officerRole");
+
+        // Home View Stats
+        const totalViolationsCount = document.getElementById("totalViolationsCount");
+        const unpaidFinesCount = document.getElementById("unpaidFinesCount");
+        const paidFinesCount = document.getElementById("paidFinesCount");
+
+        let officerWallet = null;
+        let provider, signer, contract;
+        // Initialize public read provider and contract immediately
+        let readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        let readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+
+        // --- Utility ---
+        function displayMessage(text, isError = false) {
+            const messageBox = document.getElementById("messageBox");
+            messageBox.textContent = text;
+            messageBox.classList.remove("hidden");
+            messageBox.classList.remove("bg-red-100", "text-red-800", "bg-green-100", "text-green-800", "border-red-400", "border-green-400");
+
+            messageBox.classList.toggle("bg-red-100", isError);
+            messageBox.classList.toggle("text-red-800", isError);
+            messageBox.classList.toggle("border-red-400", isError);
+            messageBox.classList.toggle("bg-green-100", !isError);
+            messageBox.classList.toggle("text-green-800", !isError);
+            messageBox.classList.toggle("border-green-400", !isError);
+
+            setTimeout(() => {
+                messageBox.classList.add("hidden");
+                messageBox.textContent = '';
+            }, 5000);
+        }
+
+        function formatAddress(address) {
+            return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'N/A';
+        }
+
+        // --- Wallet Connection Logic (Essential for all files) ---
+        async function connectContract() {
+            if (!window.ethereum) {
+                displayMessage("Please install MetaMask!", true);
+                return;
+            }
+
+            try {
+                walletConnectModal.classList.remove("hidden");
+                provider = new ethers.BrowserProvider(window.ethereum);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                if (!accounts || accounts.length === 0) {
+                    throw { code: 4001, message: "No wallet accounts found!" };
+                }
+
+                officerWallet = accounts[0];
+                sessionStorage.setItem("walletAddress", officerWallet);
+
+                signer = await provider.getSigner();
+                contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+                updateUIForConnectedState(officerWallet);
+                displayMessage("Wallet connected!");
+                await loadStats(); // Re-load data after connection
+            } catch (err) {
+                console.error(err);
+                displayMessage(err.code === 4001 ? "Connection rejected by user." : "Wallet connection failed.", true);
+                updateUIForDisconnectedState();
+            } finally {
+                walletConnectModal.classList.add("hidden");
+            }
+        }
+
+        // --- History/Stats Loading (Specific to Home/Ledger) ---
+        async function loadStats() {
+            // Set to loading state immediately
+            totalViolationsCount.textContent = '...';
+            unpaidFinesCount.textContent = '...';
+            paidFinesCount.textContent = '...';
+
+            try {
+                // Ensure readContract is available for the call
+                if (!readContract) {
+                    readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, readProvider);
+                }
+
+                const violations = await readContract.getAllViolations();
+
+                // Update the counters based on the fetched data
+                totalViolationsCount.textContent = violations.length;
+
+                // Count all violations where the status is NOT "Paid" to get the unpaid count
+                unpaidFinesCount.textContent = violations.filter(v => v.status !== "Paid").length;
+
+                paidFinesCount.textContent = violations.filter(v => v.status === "Paid").length;
+
+            } catch (error) {
+                console.error("Error loading stats:", error);
+                displayMessage("Failed to load statistics from the blockchain. Check RPC/Contract config.", true);
+                // Display error state
+                totalViolationsCount.textContent = 'Error';
+                unpaidFinesCount.textContent = 'Error';
+                paidFinesCount.textContent = 'Error';
+            }
+        }
+
+        // --- Wallet UI ---
+        function updateUIForConnectedState(address) {
+            officerWallet = address; // Set the global variable
+            walletShort.textContent = formatAddress(address);
+            profile.classList.remove("hidden");
+            profile.classList.add("flex");
+            officerRole.classList.remove("hidden");
+            // NOTE: Setting the role text to 'Cashier' here
+            officerRole.textContent = 'Cashier';
+            connectWalletBtn.classList.add("hidden");
+            logoutButton.classList.remove("hidden"); // Show the new Logout button
+        }
+
+        function updateUIForDisconnectedState() {
+            officerWallet = null;
+            sessionStorage.removeItem("walletAddress");
+            profile.classList.add("hidden");
+            profile.classList.remove("flex");
+            connectWalletBtn.classList.remove("hidden");
+            logoutButton.classList.add("hidden"); // Hide the Logout button
+        }
+
+        /**
+         * Clears the wallet session and redirects the user to the landing page.
+         */
+        function disconnectWalletAndRedirect() {
+            updateUIForDisconnectedState();
+            displayMessage("Wallet disconnected. Redirecting...");
+
+            // Wait briefly for the message to display, then redirect.
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 500);
+        }
+
+
+        // --- Event Listeners ---
+        connectWalletBtn.addEventListener("click", connectContract);
+        // Use the new function for the new logout button
+        logoutButton.addEventListener("click", disconnectWalletAndRedirect);
+
+
+        window.onload = () => {
+            // Check for saved wallet address on load
+            const savedWallet = sessionStorage.getItem("walletAddress");
+            if (savedWallet) {
+                // If a wallet is saved, update the UI to show the connection status
+                updateUIForConnectedState(savedWallet);
+            } else {
+                // Otherwise, show the disconnected UI (Connect Wallet button)
+                updateUIForDisconnectedState();
+            }
+
+            // ALWAYS call loadStats regardless of wallet connection to show public data
+            loadStats();
+        };
+    </script>
+</body>
+
+</html>
