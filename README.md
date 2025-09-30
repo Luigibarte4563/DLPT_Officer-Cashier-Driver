@@ -7,7 +7,7 @@ A decentralized violation and penalty tracking system for traffic management.
 
 ## 🔗 Live Demo  
 *(If you have a deployed version, put the URL here)*  
-[View Demo](https://luigibarte4563.github.io/DLPT_Officer-Cashier-Driver/)
+[View Demo](https://code-5nesyfzi0-driverslicencepenaltytracker.vercel.app)
 
 ---
 
@@ -80,7 +80,7 @@ Example for Sepolia Testnet:
 
 Network Name: Sepolia Testnet
 
-RPC URL: https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID
+RPC URL: [https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID](https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763)
 
 Chain ID: 11155111
 
@@ -88,6 +88,7 @@ Currency Symbol: ETH
 
 Block Explorer: https://sepolia.etherscan.io
 
+```
 🧠 Summary
 DLPT (Driver’s License Penalty Track) provides a transparent, blockchain-powered system for traffic violations.
 
