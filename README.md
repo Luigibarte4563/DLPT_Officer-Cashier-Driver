@@ -5,9 +5,7 @@ A decentralized violation and penalty tracking system for traffic management.
 
 ---
 
-## 🔗 Live Demo  
-*(If you have a deployed version, put the URL here)*  
-[View Demo](https://code-5nesyfzi0-driverslicencepenaltytracker.vercel.app)
+## 🔗 Live Demo [View Demo](https://code-5nesyfzi0-driverslicencepenaltytracker.vercel.app)
 
 ---
 
