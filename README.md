@@ -80,7 +80,7 @@ Example for Sepolia Testnet:
 
 Network Name: Sepolia Testnet
 
-RPC URL: [https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID](https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763]
+RPC URL: [https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID](https://sepolia.infura.io/v3/927cc9e253b042d9b11fe17422a44763)
 
 Chain ID: 11155111
 
